@@ -1,12 +1,16 @@
 function getISOWeekNumber(date) {
-  const tempDate = new Date(
-    Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())
-  );
-  const dayNum = tempDate.getUTCDay() || 7;
-  tempDate.setUTCDate(tempDate.getUTCDate() + 4 - dayNum);
-  const yearStart = new Date(Date.UTC(tempDate.getUTCFullYear(), 0, 1));
-  const weekNum = Math.ceil(((tempDate - yearStart) / 86400000 + 1) / 7);
-  return weekNum;
+  const target = new Date(date);
+  const dayNr = (target.getDay() + 6) % 7;
+  target.setDate(target.getDate() - dayNr + 3);
+  const firstThursday = new Date(target.getFullYear(), 0, 4);
+  const diff = target - firstThursday;
+  return 1 + Math.round(diff / (7 * 24 * 3600 * 1000));
+}
+
+function has53Weeks(year) {
+  const dec31 = new Date(year, 11, 31);
+  const weekNum = getISOWeekNumber(dec31);
+  return weekNum === 53;
 }
 
 export default function Calendar({ year }) {
@@ -33,10 +37,12 @@ export default function Calendar({ year }) {
     "December"
   ];
 
+  const weeksInYear = has53Weeks(year) ? 53 : 52;
+
   return (
     <div className="max-w-6xl mx-auto p-6 bg-white rounded-xl shadow-md flex flex-col gap-8">
       <h2 className="text-2xl font-bold text-gray-800 text-center mb-4">
-        Calendar for {year}
+        Calendar for {year} ({weeksInYear} weeks)
       </h2>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -83,11 +89,13 @@ function MonthView({ year, month }) {
           </div>
         )}
       </div>
+
       {weeks.map((week, weekIndex) => {
         const firstValidDay = week.find(d => d !== null);
         const weekNumber = firstValidDay
           ? getISOWeekNumber(new Date(year, month, firstValidDay))
           : "";
+
         return (
           <div
             key={weekIndex}
@@ -96,6 +104,7 @@ function MonthView({ year, month }) {
             <div className="font-semibold text-gray-500 bg-gray-100 rounded p-1">
               {weekNumber}
             </div>
+
             {week.map((day, dayIndex) => {
               const isWeekend = dayIndex >= 5;
               return (
