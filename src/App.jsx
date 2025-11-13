@@ -1,12 +1,16 @@
+import { useState } from "react";
 import Calendar from "./components/Calendar";
+import YearSelector from "./components/YearSelector";
 import "./App.css";
 
-function App() {
+export default function App() {
+  const [year, setYear] = useState(null);
+
   return (
     <div>
-      <Calendar />
+      <YearSelector onYearChange={setYear} />
+      <p>&nbsp;</p>
+      <Calendar year={year} />
     </div>
   );
 }
-
-export default App;
