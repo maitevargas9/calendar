@@ -1,3 +1,14 @@
+function getISOWeekNumber(date) {
+  const tempDate = new Date(
+    Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())
+  );
+  const dayNum = tempDate.getUTCDay() || 7;
+  tempDate.setUTCDate(tempDate.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(tempDate.getUTCFullYear(), 0, 1));
+  const weekNum = Math.ceil(((tempDate - yearStart) / 86400000 + 1) / 7);
+  return weekNum;
+}
+
 export default function Calendar({ year }) {
   if (!year) {
     return (
@@ -56,34 +67,54 @@ function MonthView({ year, month }) {
   ];
 
   const weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  const weeks = [];
+
+  for (let i = 0; i < daysArray.length; i += 7) {
+    weeks.push(daysArray.slice(i, i + 7));
+  }
 
   return (
     <div className="w-full">
-      <div className="grid grid-cols-7 text-[10px] font-semibold text-gray-500 mb-1">
+      <div className="grid grid-cols-8 text-[10px] font-semibold text-gray-500 mb-1">
+        <div className="text-center">KW</div>
         {weekdays.map(d =>
           <div key={d} className="text-center uppercase">
             {d}
           </div>
         )}
       </div>
-      <div className="grid grid-cols-7 gap-0.5 text-xs text-center text-gray-700">
-        {daysArray.map((day, index) => {
-          const isWeekend = index % 7 === 5 || index % 7 === 6;
-          return (
-            <div
-              key={index}
-              className={`p-1 h-6 flex items-center justify-center border rounded 
-                ${day
-                  ? "bg-white hover:bg-indigo-50 cursor-pointer"
-                  : "bg-transparent border-none"}
-                ${isWeekend && day ? "bg-red-50" : ""}
-              `}
-            >
-              {day || ""}
+      {weeks.map((week, weekIndex) => {
+        const firstValidDay = week.find(d => d !== null);
+        const weekNumber = firstValidDay
+          ? getISOWeekNumber(new Date(year, month, firstValidDay))
+          : "";
+        return (
+          <div
+            key={weekIndex}
+            className="grid grid-cols-8 gap-0.5 text-xs text-center text-gray-700 mb-0.5"
+          >
+            <div className="font-semibold text-gray-500 bg-gray-100 rounded p-1">
+              {weekNumber}
             </div>
-          );
-        })}
-      </div>
+            {week.map((day, dayIndex) => {
+              const isWeekend = dayIndex >= 5;
+              return (
+                <div
+                  key={dayIndex}
+                  className={`p-1 h-6 flex items-center justify-center border rounded 
+                    ${day
+                      ? "bg-white hover:bg-indigo-50 cursor-pointer"
+                      : "bg-transparent border-none"}
+                    ${isWeekend && day ? "bg-red-50" : ""}
+                  `}
+                >
+                  {day || ""}
+                </div>
+              );
+            })}
+          </div>
+        );
+      })}
     </div>
   );
 }
