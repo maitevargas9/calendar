@@ -1,8 +1,16 @@
 import { getISOWeekNumber } from "./calendarUtils";
 
 export default function MonthView({ year, month }) {
+  const today = new Date();
+
+  const isToday = day =>
+    day &&
+    today.getFullYear() === year &&
+    today.getMonth() === month &&
+    today.getDate() === day;
+
   const firstDay = new Date(year, month, 1);
-  const startDay = (firstDay.getDay() + 6) % 7;
+  const startDay = (firstDay.getDay() + 6) % 7; // Monday = 0
   const daysInMonth = new Date(year, month + 1, 0).getDate();
 
   const daysArray = [
@@ -19,6 +27,7 @@ export default function MonthView({ year, month }) {
 
   return (
     <div className="w-full">
+      {/* Weekday Header */}
       <div className="grid grid-cols-8 text-[10px] font-semibold text-gray-500 mb-1">
         <div className="text-center">KW</div>
         {weekdays.map(d =>
@@ -28,6 +37,7 @@ export default function MonthView({ year, month }) {
         )}
       </div>
 
+      {/* Weeks */}
       {weeks.map((week, weekIndex) => {
         const firstValidDay = week.find(d => d !== null);
         let weekNumber = "";
@@ -36,6 +46,7 @@ export default function MonthView({ year, month }) {
           const currentDate = new Date(year, month, firstValidDay);
           weekNumber = getISOWeekNumber(currentDate);
 
+          // Year boundary fix
           if (month === 11 && weekNumber === 1) {
             weekNumber = getISOWeekNumber(new Date(year + 1, 0, 1));
           }
@@ -46,21 +57,29 @@ export default function MonthView({ year, month }) {
             key={weekIndex}
             className="grid grid-cols-8 gap-0.5 text-xs text-center text-gray-700 mb-0.5"
           >
+            {/* Week Number */}
             <div className="font-semibold text-gray-500 bg-gray-100 rounded p-1">
               {weekNumber || ""}
             </div>
 
             {week.map((day, dayIndex) => {
-              const isWeekend = dayIndex >= 5;
+              const isWeekend = dayIndex >= 5; // Sat & Sun
 
               return (
                 <div
                   key={dayIndex}
-                  className={`p-1 h-6 flex items-center justify-center border rounded
+                  className={`
+                    p-1 h-7 flex items-center justify-center border rounded
+
                     ${day
-                      ? "bg-white hover:bg-indigo-50 cursor-pointer"
+                      ? `${isWeekend
+                          ? "bg-red-50"
+                          : "bg-white"} hover:bg-indigo-50 cursor-pointer`
                       : "bg-transparent border-none"}
-                    ${isWeekend && day ? "bg-red-50" : ""}
+
+                    ${isToday(day)
+                      ? "bg-blue-200 border-blue-600 font-bold shadow-[0_0_6px_rgba(37,99,235,0.8)]"
+                      : ""}
                   `}
                 >
                   {day || ""}
