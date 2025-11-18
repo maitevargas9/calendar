@@ -1,11 +1,13 @@
-import { useState } from "react";
 import MonthView from "./MonthView";
 import { has53Weeks } from "./calendarUtils";
 
-export default function Calendar({ year }) {
-  const [viewMode, setViewMode] = useState("year");
-  const [monthIndex, setMonthIndex] = useState(0);
-
+export default function Calendar({
+  year,
+  monthIndex,
+  viewMode,
+  setViewMode,
+  setMonthIndex
+}) {
   if (!year) {
     return (
       <div className="max-w-md mx-auto p-6 bg-white rounded-xl shadow-md text-center text-gray-600">
@@ -31,18 +33,12 @@ export default function Calendar({ year }) {
 
   const totalWeeks = has53Weeks(year) ? 53 : 52;
 
-  function prevMonth() {
-    setMonthIndex(m => (m === 0 ? 11 : m - 1));
-  }
-
-  function nextMonth() {
-    setMonthIndex(m => (m === 11 ? 0 : m + 1));
-  }
-
   return (
     <div className="max-w-6xl mx-auto p-6 bg-white rounded-xl shadow-md flex flex-col gap-8">
       <h2 className="text-2xl font-bold text-gray-800 text-center">
-        Calendar for {year} ({totalWeeks} weeks)
+        {viewMode === "year"
+          ? `Calendar for ${year} (${totalWeeks} weeks)`
+          : `${months[monthIndex]} ${year}`}
       </h2>
 
       <div className="flex justify-center">
@@ -75,26 +71,6 @@ export default function Calendar({ year }) {
 
       {viewMode === "month" &&
         <div className="max-w-xl mx-auto w-full">
-          <div className="flex justify-between items-center mb-4 gap-8">
-            <button
-              onClick={prevMonth}
-              className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded shadow"
-            >
-              ◀ Previous Month
-            </button>
-
-            <h3 className="text-xl font-semibold text-gray-800">
-              {months[monthIndex]}
-            </h3>
-
-            <button
-              onClick={nextMonth}
-              className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded shadow"
-            >
-              Next Month ▶
-            </button>
-          </div>
-
           <div className="border rounded-lg shadow-sm p-4 bg-gray-50">
             <MonthView year={year} month={monthIndex} />
           </div>
