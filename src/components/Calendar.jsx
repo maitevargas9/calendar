@@ -1,4 +1,6 @@
+import { useState } from "react";
 import MonthView from "./MonthView";
+import EventModal from "./EventModal";
 import { has53Weeks } from "./calendarUtils";
 
 export default function Calendar({
@@ -8,6 +10,21 @@ export default function Calendar({
   setViewMode,
   setMonthIndex
 }) {
+  const [events, setEvents] = useState([]);
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleDayClick = day => {
+    if (!day) return;
+    const date = new Date(year, monthIndex, day);
+    setSelectedDate(date);
+    setIsModalOpen(true);
+  };
+
+  const handleSaveEvent = event => {
+    setEvents(prev => [...prev, event]);
+  };
+
   if (!year) {
     return (
       <div className="max-w-md mx-auto p-6 bg-white rounded-xl shadow-md text-center text-gray-600">
@@ -64,7 +81,12 @@ export default function Calendar({
               <h3 className="text-lg font-semibold text-gray-700 mb-2">
                 {month}
               </h3>
-              <MonthView year={year} month={index} />
+              <MonthView
+                year={year}
+                month={index}
+                onDayClick={handleDayClick}
+                events={events}
+              />
             </div>
           )}
         </div>}
@@ -72,9 +94,21 @@ export default function Calendar({
       {viewMode === "month" &&
         <div className="max-w-xl mx-auto w-full">
           <div className="border rounded-lg shadow-sm p-4 bg-gray-50">
-            <MonthView year={year} month={monthIndex} />
+            <MonthView
+              year={year}
+              month={monthIndex}
+              onDayClick={handleDayClick}
+              events={events}
+            />
           </div>
         </div>}
+
+      <EventModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        date={selectedDate}
+        onSave={handleSaveEvent}
+      />
     </div>
   );
 }
