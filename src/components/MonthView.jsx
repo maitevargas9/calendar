@@ -1,6 +1,11 @@
 import { getISOWeekNumber } from "./calendarUtils";
 
-export default function MonthView({ year, month, onDayClick }) {
+export default function MonthView({
+  year,
+  month,
+  onDayClick,
+  getEventsForDay
+}) {
   const today = new Date();
 
   const isToday = day =>
@@ -58,6 +63,8 @@ export default function MonthView({ year, month, onDayClick }) {
 
             {week.map((day, dayIndex) => {
               const isWeekend = dayIndex >= 5;
+              const dayEvents = day ? getEventsForDay(year, month, day) : [];
+
               return (
                 <div
                   key={dayIndex}
@@ -75,6 +82,16 @@ export default function MonthView({ year, month, onDayClick }) {
                   `}
                 >
                   {day || ""}
+
+                  {dayEvents.length > 0 &&
+                    <div className="flex gap-0.5 mt-0.5 flex-wrap justify-center">
+                      {dayEvents.map(ev =>
+                        <div
+                          key={ev.id}
+                          className="w-1.5 h-1.5 rounded-full bg-indigo-600"
+                        />
+                      )}
+                    </div>}
                 </div>
               );
             })}

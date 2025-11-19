@@ -1,7 +1,28 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import MonthView from "./MonthView";
 import EventModal from "./EventModal";
 import { has53Weeks } from "./calendarUtils";
+
+const STORAGE_KEY = "calendarEvents_v1";
+
+function serializeEvents(events) {
+  return events.map(e => ({
+    ...e,
+    date: e.date instanceof Date ? e.date.toISOString() : e.date
+  }));
+}
+
+function deserializeEvents(serialized) {
+  try {
+    return serialized.map(e => ({
+      ...e,
+      date: e.date ? new Date(e.date) : null
+    }));
+  } catch (err) {
+    console.error("Failed to deserialize events", err);
+    return [];
+  }
+}
 
 export default function Calendar({
   year,
@@ -14,16 +35,74 @@ export default function Calendar({
   const [selectedDate, setSelectedDate] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  useEffect(() => {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw);
+        const loaded = deserializeEvents(parsed);
+        setEvents(loaded);
+      } catch (err) {
+        console.error("Failed to load events from localStorage:", err);
+      }
+    }
+  }, []);
+
+  useEffect(
+    () => {
+      try {
+        const toStore = serializeEvents(events);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(toStore));
+      } catch (err) {
+        console.error("Failed to save events to localStorage:", err);
+      }
+    },
+    [events]
+  );
+
+  const openModalForDay = useCallback(
+    (day, monthForClick = monthIndex, yearForClick = year) => {
+      if (!day) {
+        return;
+      }
+      setSelectedDate(new Date(yearForClick, monthForClick, day));
+      setIsModalOpen(true);
+    },
+    [monthIndex, year]
+  );
+
   const handleDayClick = day => {
-    if (!day) return;
-    const date = new Date(year, monthIndex, day);
-    setSelectedDate(date);
-    setIsModalOpen(true);
+    openModalForDay(day);
   };
 
   const handleSaveEvent = event => {
-    setEvents(prev => [...prev, event]);
+    if (!event || !event.date || !event.title) {
+      return;
+    }
+
+    const newEvent = {
+      id: `${Date.now()}_${Math.floor(Math.random() * 9999)}`,
+      title: event.title,
+      description: event.description || "",
+      date: event.date
+    };
+
+    setEvents(prev => [...prev, newEvent]);
+    setIsModalOpen(false);
   };
+
+  const getEventsForDay = useCallback(
+    (y, m, d) => {
+      return events.filter(
+        e =>
+          e.date instanceof Date &&
+          e.date.getFullYear() === y &&
+          e.date.getMonth() === m &&
+          e.date.getDate() === d
+      );
+    },
+    [events]
+  );
 
   if (!year) {
     return (
@@ -84,8 +163,9 @@ export default function Calendar({
               <MonthView
                 year={year}
                 month={index}
-                onDayClick={handleDayClick}
+                onDayClick={day => handleDayClick(day, index)}
                 events={events}
+                getEventsForDay={getEventsForDay}
               />
             </div>
           )}
@@ -97,8 +177,9 @@ export default function Calendar({
             <MonthView
               year={year}
               month={monthIndex}
-              onDayClick={handleDayClick}
+              onDayClick={day => handleDayClick(day, monthIndex)}
               events={events}
+              getEventsForDay={getEventsForDay}
             />
           </div>
         </div>}
@@ -108,6 +189,15 @@ export default function Calendar({
         onClose={() => setIsModalOpen(false)}
         date={selectedDate}
         onSave={handleSaveEvent}
+        events={
+          selectedDate
+            ? getEventsForDay(
+                selectedDate.getFullYear(),
+                selectedDate.getMonth(),
+                selectedDate.getDate()
+              )
+            : []
+        }
       />
     </div>
   );
