@@ -4,8 +4,8 @@ export default function MonthView({
   year,
   month,
   onDayClick,
-  categories,
-  getEventsForDay
+  getEventsForDay,
+  categories
 }) {
   const today = new Date();
 

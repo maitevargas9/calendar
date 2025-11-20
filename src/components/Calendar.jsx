@@ -62,8 +62,12 @@ export default function Calendar({
     [monthIndex, year]
   );
 
-  const handleDayClick = day => {
-    openModalForDay(day);
+  const handleDayClick = (
+    day,
+    monthForClick = monthIndex,
+    yearForClick = year
+  ) => {
+    openModalForDay(day, monthForClick, yearForClick);
   };
 
   const handleSaveEvent = event => {
@@ -157,8 +161,8 @@ export default function Calendar({
                 month={index}
                 onDayClick={day => handleDayClick(day, index)}
                 events={events}
-                categories={categories}
                 getEventsForDay={getEventsForDay}
+                categories={categories}
               />
             </div>
           )}
@@ -172,8 +176,8 @@ export default function Calendar({
               month={monthIndex}
               onDayClick={day => handleDayClick(day, monthIndex)}
               events={events}
-              categories={categories}
               getEventsForDay={getEventsForDay}
+              categories={categories}
             />
           </div>
         </div>}
@@ -183,7 +187,6 @@ export default function Calendar({
         onClose={() => setIsModalOpen(false)}
         date={selectedDate}
         onSave={handleSaveEvent}
-        categories={categories}
         events={
           selectedDate
             ? getEventsForDay(
@@ -193,6 +196,15 @@ export default function Calendar({
               )
             : []
         }
+        categories={categories}
+        onUpdateEvent={updatedEvent => {
+          setEvents(prev =>
+            prev.map(e => (e.id === updatedEvent.id ? updatedEvent : e))
+          );
+        }}
+        onDeleteEvent={id => {
+          setEvents(prev => prev.filter(e => e.id !== id));
+        }}
       />
     </div>
   );

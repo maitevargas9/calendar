@@ -1,16 +1,34 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function EventModal({
   isOpen,
   onClose,
   date,
   onSave,
+  events = [],
   categories,
-  events = []
+  onUpdateEvent,
+  onDeleteEvent
 }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("work");
+  const [editingEvent, setEditingEvent] = useState(null);
+
+  useEffect(
+    () => {
+      if (!editingEvent) {
+        setTitle("");
+        setDescription("");
+        setCategory("work");
+      } else {
+        setTitle(editingEvent.title);
+        setDescription(editingEvent.description || "");
+        setCategory(editingEvent.category || "work");
+      }
+    },
+    [editingEvent, isOpen]
+  );
 
   if (!isOpen) {
     return null;
@@ -18,42 +36,61 @@ export default function EventModal({
 
   const handleSubmit = e => {
     e.preventDefault();
-    const formData = new FormData(e.target);
-    const title = formData.get("title");
-    const description = formData.get("description");
-    if (title) {
+    if (!title) {
+      return;
+    }
+
+    if (editingEvent) {
+      onUpdateEvent({ ...editingEvent, title, description, category });
+      setEditingEvent(null);
+    } else {
       onSave({ date, title, description, category });
     }
+
     onClose();
+  };
+
+  const startEditing = ev => {
+    setEditingEvent(ev);
+  };
+
+  const handleDelete = ev => {
+    onDeleteEvent(ev.id);
+    setEditingEvent(null);
   };
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
       <div className="bg-white rounded-lg shadow-lg p-6 w-96">
-        <h2 className="text-lg font-bold mb-4">
-          {date.toDateString()}
-        </h2>
+        <h2 className="text-lg font-bold mb-4">{date.toDateString()}</h2>
 
-        {events.length > 0 &&
+        {events.length > 0 && (
           <div className="mb-4">
             <h3 className="text-sm font-semibold mb-2">Events on this day:</h3>
             <ul className="space-y-1">
-              {events.map(ev =>
+              {events.map(ev => (
                 <li
                   key={ev.id}
-                  className="p-2 rounded bg-indigo-50 border border-indigo-200 text-xs"
+                  className="p-2 rounded bg-indigo-50 border border-indigo-200 text-xs flex justify-between items-center cursor-pointer"
+                  onClick={() => startEditing(ev)}
                 >
-                  <div className="font-semibold">
-                    {ev.title}
+                  <div>
+                    <div className="font-semibold">{ev.title}</div>
+                    {ev.description && (
+                      <div className="text-gray-600">{ev.description}</div>
+                    )}
                   </div>
-                  {ev.description &&
-                    <div className="text-gray-600">
-                      {ev.description}
-                    </div>}
+                  <div
+                    className={`w-3 h-3 rounded-full ${
+                      categories.find(c => c.id === ev.category)?.color ||
+                      "bg-indigo-600"
+                    }`}
+                  />
                 </li>
-              )}
+              ))}
             </ul>
-          </div>}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
           <input
@@ -80,14 +117,24 @@ export default function EventModal({
             onChange={e => setCategory(e.target.value)}
             className="border rounded px-3 py-2 w-full"
           >
-            {categories.map(cat =>
+            {categories.map(cat => (
               <option key={cat.id} value={cat.id}>
                 {cat.label}
               </option>
-            )}
+            ))}
           </select>
 
           <div className="flex justify-end gap-2 mt-2">
+            {editingEvent && (
+              <button
+                type="button"
+                onClick={() => handleDelete(editingEvent)}
+                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+              >
+                Delete
+              </button>
+            )}
+
             <button
               type="button"
               onClick={onClose}
@@ -100,7 +147,7 @@ export default function EventModal({
               type="submit"
               className="px-4 py-2 bg-indigo-500 text-white rounded hover:bg-indigo-600"
             >
-              Save
+              {editingEvent ? "Update" : "Save"}
             </button>
           </div>
         </form>
