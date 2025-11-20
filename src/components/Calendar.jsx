@@ -1,28 +1,12 @@
 import { useState, useEffect, useCallback } from "react";
 import MonthView from "./MonthView";
 import EventModal from "./EventModal";
-import { has53Weeks } from "./calendarUtils";
-
-const STORAGE_KEY = "calendarEvents_v1";
-
-function serializeEvents(events) {
-  return events.map(e => ({
-    ...e,
-    date: e.date instanceof Date ? e.date.toISOString() : e.date
-  }));
-}
-
-function deserializeEvents(serialized) {
-  try {
-    return serialized.map(e => ({
-      ...e,
-      date: e.date ? new Date(e.date) : null
-    }));
-  } catch (err) {
-    console.error("Failed to deserialize events", err);
-    return [];
-  }
-}
+import {
+  has53Weeks,
+  serializeEvents,
+  deserializeEvents,
+  STORAGE_KEY
+} from "./calendarUtils";
 
 export default function Calendar({
   year,

@@ -13,3 +13,24 @@ export function has53Weeks(year) {
   const dec31 = new Date(year, 11, 31);
   return getISOWeekNumber(dec31) === 53;
 }
+
+export const STORAGE_KEY = "calendarEvents_v1";
+
+export function serializeEvents(events) {
+  return events.map((e) => ({
+    ...e,
+    date: e.date instanceof Date ? e.date.toISOString() : e.date
+  }));
+}
+
+export function deserializeEvents(serialized) {
+  try {
+    return serialized.map((e) => ({
+      ...e,
+      date: e.date ? new Date(e.date) : null
+    }));
+  } catch (err) {
+    console.error("Failed to deserialize events", err);
+    return [];
+  }
+}
