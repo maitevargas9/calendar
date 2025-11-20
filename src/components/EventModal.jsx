@@ -5,10 +5,12 @@ export default function EventModal({
   onClose,
   date,
   onSave,
+  categories,
   events = []
 }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [category, setCategory] = useState("work");
 
   if (!isOpen) {
     return null;
@@ -20,7 +22,7 @@ export default function EventModal({
     const title = formData.get("title");
     const description = formData.get("description");
     if (title) {
-      onSave({ date, title, description });
+      onSave({ date, title, description, category });
     }
     onClose();
   };
@@ -71,6 +73,19 @@ export default function EventModal({
             value={description}
             onChange={e => setDescription(e.target.value)}
           />
+
+          <select
+            name="category"
+            value={category}
+            onChange={e => setCategory(e.target.value)}
+            className="border rounded px-3 py-2 w-full"
+          >
+            {categories.map(cat =>
+              <option key={cat.id} value={cat.id}>
+                {cat.label}
+              </option>
+            )}
+          </select>
 
           <div className="flex justify-end gap-2 mt-2">
             <button

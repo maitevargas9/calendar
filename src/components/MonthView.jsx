@@ -4,6 +4,7 @@ export default function MonthView({
   year,
   month,
   onDayClick,
+  categories,
   getEventsForDay
 }) {
   const today = new Date();
@@ -85,12 +86,17 @@ export default function MonthView({
 
                   {dayEvents.length > 0 &&
                     <div className="flex gap-0.5 mt-0.5 flex-wrap justify-center">
-                      {dayEvents.map(ev =>
-                        <div
-                          key={ev.id}
-                          className="w-1.5 h-1.5 rounded-full bg-indigo-600"
-                        />
-                      )}
+                      {dayEvents.map(ev => {
+                        const cat = categories.find(c => c.id === ev.category);
+                        return (
+                          <div
+                            key={ev.id}
+                            className={`w-1.5 h-1.5 rounded-full ${cat
+                              ? cat.color
+                              : "bg-indigo-600"}`}
+                          />
+                        );
+                      })}
                     </div>}
                 </div>
               );

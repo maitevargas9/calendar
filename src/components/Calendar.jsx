@@ -3,9 +3,9 @@ import MonthView from "./MonthView";
 import EventModal from "./EventModal";
 import {
   has53Weeks,
+  STORAGE_KEY,
   serializeEvents,
-  deserializeEvents,
-  STORAGE_KEY
+  deserializeEvents
 } from "./calendarUtils";
 
 export default function Calendar({
@@ -18,6 +18,13 @@ export default function Calendar({
   const [events, setEvents] = useState([]);
   const [selectedDate, setSelectedDate] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const categories = [
+    { id: "work", label: "Work", color: "bg-blue-600" },
+    { id: "personal", label: "Personal", color: "bg-green-600" },
+    { id: "birthday", label: "Birthday", color: "bg-pink-600" },
+    { id: "urgent", label: "Urgent", color: "bg-red-600" }
+  ];
 
   useEffect(() => {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -68,7 +75,8 @@ export default function Calendar({
       id: `${Date.now()}_${Math.floor(Math.random() * 9999)}`,
       title: event.title,
       description: event.description || "",
-      date: event.date
+      date: event.date,
+      category: event.category || "work"
     };
 
     setEvents(prev => [...prev, newEvent]);
@@ -149,6 +157,7 @@ export default function Calendar({
                 month={index}
                 onDayClick={day => handleDayClick(day, index)}
                 events={events}
+                categories={categories}
                 getEventsForDay={getEventsForDay}
               />
             </div>
@@ -163,6 +172,7 @@ export default function Calendar({
               month={monthIndex}
               onDayClick={day => handleDayClick(day, monthIndex)}
               events={events}
+              categories={categories}
               getEventsForDay={getEventsForDay}
             />
           </div>
@@ -173,6 +183,7 @@ export default function Calendar({
         onClose={() => setIsModalOpen(false)}
         date={selectedDate}
         onSave={handleSaveEvent}
+        categories={categories}
         events={
           selectedDate
             ? getEventsForDay(
