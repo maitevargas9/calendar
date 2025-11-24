@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import MonthView from "./MonthView";
+import WeekView from "./WeekView";
 import EventModal from "./EventModal";
 import {
   has53Weeks,
@@ -18,6 +19,7 @@ export default function Calendar({
   const [events, setEvents] = useState([]);
   const [selectedDate, setSelectedDate] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [weekDate, setWeekDate] = useState(new Date());
 
   const categories = [
     { id: "work", label: "Work", color: "bg-blue-600" },
@@ -133,12 +135,26 @@ export default function Calendar({
           : `${months[monthIndex]} ${year}`}
       </h2>
 
-      <div className="flex justify-center">
+      <div className="flex gap-3 justify-center">
         <button
-          className="px-5 py-2 bg-indigo-500 text-white rounded-lg shadow hover:bg-indigo-600 transition"
-          onClick={() => setViewMode(viewMode === "year" ? "month" : "year")}
+          className="px-4 py-2 bg-indigo-500 text-white rounded"
+          onClick={() => setViewMode("week")}
         >
-          {viewMode === "year" ? "Switch to Month View" : "Switch to Year View"}
+          Week View
+        </button>
+
+        <button
+          className="px-4 py-2 bg-gray-300 rounded"
+          onClick={() => setViewMode("month")}
+        >
+          Month View
+        </button>
+
+        <button
+          className="px-4 py-2 bg-gray-300 rounded"
+          onClick={() => setViewMode("year")}
+        >
+          Year View
         </button>
       </div>
 
@@ -180,6 +196,50 @@ export default function Calendar({
               categories={categories}
             />
           </div>
+        </div>}
+
+      {viewMode === "week" &&
+        <div className="flex flex-col gap-4 items-center">
+          <div className="flex gap-3">
+            <button
+              className="px-3 py-1 bg-gray-200 rounded"
+              onClick={() => {
+                const d = new Date(weekDate);
+                d.setDate(d.getDate() - 7);
+                setWeekDate(d);
+              }}
+            >
+              ◀ Previous Week
+            </button>
+
+            <button
+              className="px-3 py-1 bg-gray-200 rounded"
+              onClick={() => setWeekDate(new Date())}
+            >
+              This Week
+            </button>
+
+            <button
+              className="px-3 py-1 bg-gray-200 rounded"
+              onClick={() => {
+                const d = new Date(weekDate);
+                d.setDate(d.getDate() + 7);
+                setWeekDate(d);
+              }}
+            >
+              Next Week ▶
+            </button>
+          </div>
+
+          <WeekView
+            date={weekDate}
+            events={events}
+            categories={categories}
+            onDayClick={(day, month, year) => {
+              setSelectedDate(new Date(year, month, day));
+              setIsModalOpen(true);
+            }}
+          />
         </div>}
 
       <EventModal
