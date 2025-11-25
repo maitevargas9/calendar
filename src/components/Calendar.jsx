@@ -28,6 +28,23 @@ export default function Calendar({
     { id: "urgent", label: "Urgent", color: "bg-red-600" }
   ];
 
+  const months = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December"
+  ];
+
+  const totalWeeks = has53Weeks(year) ? 53 : 52;
+
   useEffect(() => {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
@@ -63,14 +80,6 @@ export default function Calendar({
     },
     [monthIndex, year]
   );
-
-  const handleDayClick = (
-    day,
-    monthForClick = monthIndex,
-    yearForClick = year
-  ) => {
-    openModalForDay(day, monthForClick, yearForClick);
-  };
 
   const handleSaveEvent = event => {
     if (!event || !event.date || !event.title) {
@@ -110,22 +119,91 @@ export default function Calendar({
     );
   }
 
-  const months = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December"
-  ];
+  const renderYearView = () =>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {months.map((month, index) =>
+        <div
+          key={index}
+          className="border rounded-lg shadow-sm p-4 flex flex-col items-center bg-gray-50 hover:shadow-md transition cursor-pointer"
+          onClick={() => {
+            setMonthIndex(index);
+            setViewMode("month");
+          }}
+        >
+          <h3 className="text-lg font-semibold mb-2">
+            {month}
+          </h3>
+          <MonthView
+            year={year}
+            month={index}
+            onDayClick={day => openModalForDay(day, index)}
+            events={events}
+            getEventsForDay={getEventsForDay}
+            categories={categories}
+          />
+        </div>
+      )}
+    </div>;
 
-  const totalWeeks = has53Weeks(year) ? 53 : 52;
+  const renderMonthView = () =>
+    <div className="max-w-xl mx-auto w-full">
+      <div className="border rounded-lg shadow-sm p-4 bg-gray-50">
+        <MonthView
+          year={year}
+          month={monthIndex}
+          onDayClick={day => openModalForDay(day, monthIndex)}
+          events={events}
+          getEventsForDay={getEventsForDay}
+          categories={categories}
+        />
+      </div>
+    </div>;
+
+  const renderWeekView = () =>
+    <div className="flex flex-col gap-4 items-center">
+      <div className="flex gap-3">
+        <button
+          className="px-3 py-1 bg-gray-200 rounded"
+          onClick={() =>
+            setWeekDate(
+              prev =>
+                new Date(
+                  prev.getFullYear(),
+                  prev.getMonth(),
+                  prev.getDate() - 7
+                )
+            )}
+        >
+          ◀ Previous Week
+        </button>
+        <button
+          className="px-3 py-1 bg-gray-200 rounded"
+          onClick={() => setWeekDate(new Date())}
+        >
+          This Week
+        </button>
+        <button
+          className="px-3 py-1 bg-gray-200 rounded"
+          onClick={() =>
+            setWeekDate(
+              prev =>
+                new Date(
+                  prev.getFullYear(),
+                  prev.getMonth(),
+                  prev.getDate() + 7
+                )
+            )}
+        >
+          Next Week ▶
+        </button>
+      </div>
+      <WeekView
+        date={weekDate}
+        events={events}
+        categories={categories}
+        onDayClick={(day, month, year) => openModalForDay(day, month, year)}
+      />
+    </div>;
 
   return (
     <div className="max-w-6xl mx-auto p-6 bg-white rounded-xl shadow-md flex flex-col gap-8">
@@ -134,7 +212,6 @@ export default function Calendar({
           ? `Calendar for ${year} (${totalWeeks} weeks)`
           : `${months[monthIndex]} ${year}`}
       </h2>
-
       <div className="flex gap-3 justify-center">
         <button
           className="px-4 py-2 bg-indigo-500 text-white rounded"
@@ -142,14 +219,12 @@ export default function Calendar({
         >
           Week View
         </button>
-
         <button
           className="px-4 py-2 bg-gray-300 rounded"
           onClick={() => setViewMode("month")}
         >
           Month View
         </button>
-
         <button
           className="px-4 py-2 bg-gray-300 rounded"
           onClick={() => setViewMode("year")}
@@ -158,89 +233,9 @@ export default function Calendar({
         </button>
       </div>
 
-      {viewMode === "year" &&
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {months.map((month, index) =>
-            <div
-              key={index}
-              className="border rounded-lg shadow-sm p-4 flex flex-col items-center bg-gray-50 hover:shadow-md transition cursor-pointer"
-              onClick={() => {
-                setMonthIndex(index);
-                setViewMode("month");
-              }}
-            >
-              <h3 className="text-lg font-semibold text-gray-700 mb-2">
-                {month}
-              </h3>
-              <MonthView
-                year={year}
-                month={index}
-                onDayClick={day => handleDayClick(day, index)}
-                events={events}
-                getEventsForDay={getEventsForDay}
-                categories={categories}
-              />
-            </div>
-          )}
-        </div>}
-
-      {viewMode === "month" &&
-        <div className="max-w-xl mx-auto w-full">
-          <div className="border rounded-lg shadow-sm p-4 bg-gray-50">
-            <MonthView
-              year={year}
-              month={monthIndex}
-              onDayClick={day => handleDayClick(day, monthIndex)}
-              events={events}
-              getEventsForDay={getEventsForDay}
-              categories={categories}
-            />
-          </div>
-        </div>}
-
-      {viewMode === "week" &&
-        <div className="flex flex-col gap-4 items-center">
-          <div className="flex gap-3">
-            <button
-              className="px-3 py-1 bg-gray-200 rounded"
-              onClick={() => {
-                const d = new Date(weekDate);
-                d.setDate(d.getDate() - 7);
-                setWeekDate(d);
-              }}
-            >
-              ◀ Previous Week
-            </button>
-
-            <button
-              className="px-3 py-1 bg-gray-200 rounded"
-              onClick={() => setWeekDate(new Date())}
-            >
-              This Week
-            </button>
-
-            <button
-              className="px-3 py-1 bg-gray-200 rounded"
-              onClick={() => {
-                const d = new Date(weekDate);
-                d.setDate(d.getDate() + 7);
-                setWeekDate(d);
-              }}
-            >
-              Next Week ▶
-            </button>
-          </div>
-
-          <WeekView
-            date={weekDate}
-            events={events}
-            categories={categories}
-            onDayClick={(day, month, year) => {
-              setSelectedDate(new Date(year, month, day));
-              setIsModalOpen(true);
-            }}
-          />
-        </div>}
+      {viewMode === "year" && renderYearView()}
+      {viewMode === "month" && renderMonthView()}
+      {viewMode === "week" && renderWeekView()}
 
       <EventModal
         isOpen={isModalOpen}
