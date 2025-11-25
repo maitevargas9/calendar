@@ -1,3 +1,5 @@
+import { months } from "../data/months";
+
 export default function Toolbar({
   availableYears,
   year,
@@ -8,21 +10,6 @@ export default function Toolbar({
   onPrev,
   onNext
 }) {
-  const months = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December"
-  ];
-
   return (
     <div className="flex flex-wrap gap-4 justify-center items-center p-4 bg-white shadow rounded-lg">
       <button

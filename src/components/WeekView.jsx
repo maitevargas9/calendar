@@ -1,4 +1,4 @@
-import { getISOWeekNumber } from "./calendarUtils";
+import { getISOWeekNumber } from "../utils/calendarUtils";
 
 export default function WeekView({ date, events, categories, onDayClick }) {
   const current = new Date(date);

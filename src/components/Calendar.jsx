@@ -7,7 +7,9 @@ import {
   STORAGE_KEY,
   serializeEvents,
   deserializeEvents
-} from "./calendarUtils";
+} from "../utils/calendarUtils";
+import { months } from "../data/months";
+import { categories } from "../data/categories";
 
 export default function Calendar({
   year,
@@ -20,28 +22,6 @@ export default function Calendar({
   const [selectedDate, setSelectedDate] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [weekDate, setWeekDate] = useState(new Date());
-
-  const categories = [
-    { id: "work", label: "Work", color: "bg-blue-600" },
-    { id: "personal", label: "Personal", color: "bg-green-600" },
-    { id: "birthday", label: "Birthday", color: "bg-pink-600" },
-    { id: "urgent", label: "Urgent", color: "bg-red-600" }
-  ];
-
-  const months = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December"
-  ];
 
   const totalWeeks = has53Weeks(year) ? 53 : 52;
 
